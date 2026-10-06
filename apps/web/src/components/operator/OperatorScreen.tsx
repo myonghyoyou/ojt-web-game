@@ -48,7 +48,7 @@ export function OperatorScreen({ code }: { code: string }) {
 
   if (token === undefined) return <Notice>운영자 권한을 확인하는 중</Notice>;
   if (token === null) return <Notice title="운영자 권한 없음">방을 만든 폰에서 열거나, 그 폰에서 복사한 운영자 링크로 열어 주세요.</Notice>;
-  if (closed) return <Notice title="게임 종료">방 데이터가 삭제됐습니다.</Notice>;
+  if (closed) return <Notice title="게임 종료">방 데이터를 지웠어요.</Notice>;
   if (!view) return <Notice>{error ? messageFor(error) : '서버에 연결하는 중'}</Notice>;
 
   const { round, result } = view;
@@ -89,7 +89,7 @@ export function OperatorScreen({ code }: { code: string }) {
 
       {playing && active.length < 3 && (
         <p role="alert" className="rounded-2xl bg-amber-50 p-3 text-amber-800">
-          참가자가 {active.length}명뿐이에요. 투표가 의미 없어지니 조기 종료를 권장합니다.
+          참가자가 {active.length}명뿐이에요. 이대로면 투표가 의미 없어서 조기 종료를 권해요.
         </p>
       )}
 
@@ -166,7 +166,7 @@ export function OperatorScreen({ code }: { code: string }) {
         <details className="rounded-2xl bg-white p-4">
           <summary className="min-h-12 cursor-pointer content-center font-bold">이 폰을 쓸 수 없게 되면</summary>
           <p className="mt-2 text-muted">
-            운영자 링크를 다른 기기에서 열면 그 기기가 운영자가 됩니다. 무대 화면이나 단체 채팅방에는 올리지 마세요.
+            운영자 링크를 다른 기기에서 열면 그 기기가 운영자가 돼요. 무대 화면이나 단체 채팅방에는 올리지 마세요.
           </p>
           <Button className="mt-3" variant="secondary" onClick={copyRecoveryLink}>
             {copied ? '운영자 링크를 복사했어요' : '운영자 링크 복사'}

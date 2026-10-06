@@ -12,6 +12,8 @@ import { StageLobby } from './StageLobby';
 import { StageResult } from './StageResult';
 import { StageVoting } from './StageVoting';
 
+const STAGE_STYLE = { backgroundColor: 'var(--color-stage)', color: '#ffffff' };
+
 export function StageScreen({ code }: { code: string }) {
   const { view, closed, error } = useRoomState<StageView>(`stage:${code}`, () => {
     setHandshakeAuth({ code, role: 'stage' });
@@ -19,12 +21,12 @@ export function StageScreen({ code }: { code: string }) {
   });
   useHealthPing();
 
-  if (closed) return <Notice title="감사합니다">이제 교육을 시작합니다.</Notice>;
-  if (error && !view) return <Notice>{messageFor(error)}</Notice>;
-  if (!view) return <Notice>서버에 연결하는 중</Notice>;
+  if (closed) return <Notice title="감사합니다" style={STAGE_STYLE}>이제 교육 시작할게요.</Notice>;
+  if (error && !view) return <Notice style={STAGE_STYLE}>{messageFor(error)}</Notice>;
+  if (!view) return <Notice style={STAGE_STYLE}>서버에 연결하는 중</Notice>;
 
   return (
-    <main className="relative h-dvh overflow-hidden p-12">
+    <main className="relative h-dvh overflow-hidden bg-stage text-white">
       {view.phase === 'lobby' && <StageLobby view={view} />}
       {view.phase === 'voting' && <StageVoting view={view} />}
       {view.phase === 'reveal' && <StageResult view={view} />}

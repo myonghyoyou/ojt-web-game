@@ -1,6 +1,7 @@
 'use client';
 
 import type { PublicPlayer } from '@ojt/game';
+import { playerColor } from '@/lib/colors';
 
 interface Props {
   players: PublicPlayer[];
@@ -23,6 +24,7 @@ export function PlayerAdmin({ players, disabled, onRename, onRemove }: Props) {
               className={`h-2.5 w-2.5 shrink-0 rounded-full ${p.connected ? 'bg-brand-sky' : 'bg-gray-300'}`}
               aria-label={p.connected ? '연결됨' : '연결 끊김'}
             />
+            <span className="h-5 w-5 shrink-0 rounded-full" style={{ backgroundColor: playerColor(p.color).bg }} aria-label={`${playerColor(p.color).name} 색`} />
             <span className="flex-1 text-lg">{p.name}</span>
             <button
               type="button"

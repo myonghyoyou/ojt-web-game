@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import type { PlayerView } from '@ojt/game';
 import { Notice } from '@/components/ui/Notice';
+import { colorStyle, playerColor } from '@/lib/colors';
 import { messageFor } from '@/lib/messages';
 import { call, setHandshakeAuth } from '@/lib/socket';
 import { readJson, removeKey, writeJson } from '@/lib/storage';
@@ -54,30 +55,35 @@ export function PlayerScreen({ code }: { code: string }) {
 
 function PlayerStage({ view }: { view: PlayerView }) {
   const { me, round } = view;
+  // From the moment a player joins, the whole phone is their color: the same color marks them on the stage.
+  const mine = colorStyle(me.color);
+  const colorName = playerColor(me.color).name;
   if (me.status === 'removed') return <Notice>운영자가 참가 목록에서 제외했어요.</Notice>;
-  if (me.status === 'pending') return <Notice title="입장 대기">운영자가 확인하면 다음 문제부터 참여해요.</Notice>;
+  if (me.status === 'pending') return <Notice title="입장 대기" style={mine}>운영자가 확인하면 다음 문제부터 참여해요.</Notice>;
   if (view.phase === 'lobby') {
     return (
-      <Notice title="입장 완료">
-        <span className="font-bold text-ink">{me.name}</span> 님 이름이 앞 화면에 떴어요. 지금 {view.playerCount}명이 모였어요.
+      <Notice title={`내 색은 ${colorName}`} style={mine}>
+        <span className="font-bold">{me.name}</span> 님 이름이 앞 화면에 이 색으로 떴어요. 지금 {view.playerCount}명이 모였어요.
       </Notice>
     );
   }
-  if (view.phase === 'final') return <Notice title="앞 화면을 보세요">오늘 우리가 본 서로의 이미지가 공개됩니다.</Notice>;
-  if (view.phase === 'reveal') return <ReactionPad isTop={view.isTop} hasProtested={view.hasProtested} />;
-  if (!round || !me.eligible) return <Notice>다음 문제부터 참여해요.</Notice>;
+  if (view.phase === 'final') return <Notice title="앞 화면을 보세요" style={mine}>오늘 우리가 본 서로의 이미지가 나와요.</Notice>;
+  if (view.phase === 'reveal') return <ReactionPad isTop={view.isTop} hasProtested={view.hasProtested} color={me.color} />;
+  if (!round || !me.eligible) return <Notice style={mine}>다음 문제부터 참여해요.</Notice>;
 
   return (
-    <AnimatePresence mode="wait">
-      {round.hasVoted ? (
-        <motion.div key="voted" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-          <Notice title="투표 완료">
-            다른 사람을 기다리는 중 · {round.votedCount} / {round.eligibleCount}
-          </Notice>
-        </motion.div>
-      ) : (
-        <VoteFlow key={`${round.number}-${round.question}`} round={round} />
-      )}
-    </AnimatePresence>
+    <div style={mine} className="min-h-dvh">
+      <AnimatePresence mode="wait">
+        {round.hasVoted ? (
+          <motion.div key="voted" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+            <Notice title="투표 완료" style={mine}>
+              다른 사람을 기다리는 중 · {round.votedCount} / {round.eligibleCount}
+            </Notice>
+          </motion.div>
+        ) : (
+          <VoteFlow key={`${round.number}-${round.question}`} round={round} />
+        )}
+      </AnimatePresence>
+    </div>
   );
 }

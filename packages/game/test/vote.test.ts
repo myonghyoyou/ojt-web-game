@@ -119,7 +119,7 @@ describe('reveal', () => {
     expect(room.rounds[0].result).toMatchObject({
       topIds: ['id-D'],
       type: 'unanimous',
-      comment: '본인 제외 전원 일치. 이견은 없었습니다.',
+      comment: '본인 빼고 다 같은 사람 찍었어요.',
     });
   });
 
@@ -149,7 +149,7 @@ describe('reveal', () => {
     vote(room, 'D', 'A', 0);
     maybeAutoReveal(room, first);
     expect(room.rounds[0].result?.prediction).toEqual({
-      playerId: 'id-D', predicted: 0, actual: 3, kind: 'under', comment: '본인만 몰랐습니다.',
+      playerId: 'id-D', predicted: 0, actual: 3, kind: 'under', comment: '본인만 몰랐네요.',
     });
   });
 

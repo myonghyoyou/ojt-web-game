@@ -3,7 +3,7 @@ import { totalVotes } from './round';
 import type { Room, Title } from './types';
 
 export const MYSTERY_TITLE = '미스터리 담당';
-export const MYSTERY_NOTE = '아직 아무도 이 사람을 파악하지 못했습니다';
+export const MYSTERY_NOTE = '아직 아무도 이 사람을 파악 못 했어요';
 
 /**
  * Greedy: sort (player, round) pairs by vote share, then hand each round's title to one player and

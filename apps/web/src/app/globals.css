@@ -32,6 +32,11 @@
   --color-ink: #1f2328;
   --color-muted: #5f6672;
   --color-paper: #f7f8fa;
+  /* Stage: full-bleed brand blue with players' colors on top (see lib/colors.ts). */
+  --color-stage: rgb(0 108 183);
+  --color-stage-deep: #00508a;
+  --color-sun: #ffc93c;
+  --color-night: #16161d;
   --font-sans: "GmarketSans", system-ui, sans-serif;
   /* Casual display face for big text only. User-typed names and reasons always use --font-sans. */
   --font-display: "Cafe24Ssurround", "GmarketSans", sans-serif;
@@ -43,6 +48,9 @@ body {
   color: var(--color-ink);
   font-family: var(--font-sans);
   -webkit-tap-highlight-color: transparent;
+  /* Korean wraps between words, not inside them. */
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
 /* One visible focus style for every control (keyboard users, projector laptop). */
@@ -58,4 +66,13 @@ body {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+/* Variety-show caption: yellow fill, thick ink outline. Only for fixed copy, never for typed names. */
+.caption {
+  font-family: var(--font-display);
+  color: var(--color-sun);
+  -webkit-text-stroke: 0.14em var(--color-night);
+  paint-order: stroke fill;
+  letter-spacing: 0.01em;
 }
