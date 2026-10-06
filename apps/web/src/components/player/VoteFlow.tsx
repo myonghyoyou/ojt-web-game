@@ -54,12 +54,12 @@ export function VoteFlow({ round, me }: Props) {
         <span>
           Q{round.number} / {round.total}
         </span>
-        <span>{me.name} · 내 색</span>
+        <span>{me.name}</span>
       </div>
       <h1 className="font-display text-2xl leading-snug">{round.question}</h1>
 
       {step === 'pick' && (
-        <ul className="grid grid-cols-2 gap-3">
+        <ul className="grid grid-cols-2 gap-x-3 gap-y-5">
           {round.candidates.map((c) => {
             const selected = c.id === targetId;
             return (
@@ -67,7 +67,7 @@ export function VoteFlow({ round, me }: Props) {
                 <motion.button
                   type="button"
                   onClick={() => setTargetId(c.id)}
-                  animate={{ scale: selected ? 1.06 : targetId ? 0.96 : 1, y: selected ? -8 : 0, rotate: selected ? -2 : 0, opacity: targetId && !selected ? 0.55 : 1 }}
+                  animate={{ scale: targetId && !selected ? 0.94 : 1, opacity: targetId && !selected ? 0.55 : 1 }}
                   transition={{ type: 'spring', stiffness: 500, damping: 25 }}
                   className={`min-h-24 w-full rounded-3xl border-[3px] border-night text-2xl font-bold shadow-[0_6px_0_var(--color-night)] ${selected ? 'outline-4 outline-offset-2 outline-night' : ''}`}
                   style={colorStyle(c.color)}

@@ -24,7 +24,7 @@ export function ReactionPad({ isTop, hasProtested, color }: { isTop: boolean; ha
     <div className="flex min-h-dvh flex-col p-5" style={colorStyle(color)}>
       <div className="flex flex-1 flex-col items-center justify-center gap-3 text-center">
         <p className="font-display text-4xl">앞 화면을 보세요</p>
-        {isTop && <p className="text-lg font-bold">{hasProtested ? '억울함이 전달됐어요.' : '이번 문제 1위예요. 앞 화면이 내 색이에요.'}</p>}
+        {isTop && <p className="text-lg font-bold">{hasProtested ? '억울함이 전달됐어요.' : '이번 문제 1위예요.'}</p>}
       </div>
       <div className="flex flex-col gap-3">
         {isTop && (

@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import type { PlayerView } from '@ojt/game';
 import { Notice } from '@/components/ui/Notice';
-import { colorStyle, playerColor } from '@/lib/colors';
+import { colorStyle } from '@/lib/colors';
 import { messageFor } from '@/lib/messages';
 import { call, setHandshakeAuth } from '@/lib/socket';
 import { readJson, removeKey, writeJson } from '@/lib/storage';
@@ -57,12 +57,11 @@ function PlayerStage({ view }: { view: PlayerView }) {
   const { me, round } = view;
   // From the moment a player joins, the whole phone is their color: the same color marks them on the stage.
   const mine = colorStyle(me.color);
-  const colorName = playerColor(me.color).name;
   if (me.status === 'removed') return <Notice>운영자가 참가 목록에서 제외했어요.</Notice>;
   if (me.status === 'pending') return <Notice title="입장 대기" style={mine}>운영자가 확인하면 다음 문제부터 참여해요.</Notice>;
   if (view.phase === 'lobby') {
     return (
-      <Notice title={`내 색은 ${colorName}`} style={mine}>
+      <Notice title="입장 완료" style={mine}>
         <span className="font-bold">{me.name}</span> 님 이름이 앞 화면에 이 색으로 떴어요. 지금 {view.playerCount}명이 모였어요.
       </Notice>
     );
