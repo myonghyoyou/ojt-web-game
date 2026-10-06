@@ -1,0 +1,61 @@
+@import "tailwindcss";
+
+@font-face {
+  font-family: "GmarketSans";
+  src: url("/fonts/GmarketSansLight.woff") format("woff");
+  font-weight: 300;
+  font-display: swap;
+}
+@font-face {
+  font-family: "GmarketSans";
+  src: url("/fonts/GmarketSansMedium.woff") format("woff");
+  font-weight: 500;
+  font-display: swap;
+}
+@font-face {
+  font-family: "GmarketSans";
+  src: url("/fonts/GmarketSansBold.woff") format("woff");
+  font-weight: 700;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Cafe24Ssurround";
+  src: url("/fonts/Cafe24Ssurround.woff") format("woff");
+  font-weight: 700;
+  font-display: swap;
+}
+
+@theme {
+  --color-brand-deep: rgb(0 108 183);
+  --color-brand-mid: rgb(0 123 195);
+  --color-brand-sky: rgb(0 172 230);
+  --color-ink: #1f2328;
+  --color-muted: #5f6672;
+  --color-paper: #f7f8fa;
+  --font-sans: "GmarketSans", system-ui, sans-serif;
+  /* Casual display face for big text only. User-typed names and reasons always use --font-sans. */
+  --font-display: "Cafe24Ssurround", "GmarketSans", sans-serif;
+}
+
+html,
+body {
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* One visible focus style for every control (keyboard users, projector laptop). */
+:focus-visible {
+  outline: 3px solid var(--color-brand-deep);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
