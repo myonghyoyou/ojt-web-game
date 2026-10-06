@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: ojt-realtime
+    runtime: node
+    plan: free
+    buildCommand: npm ci && npm run build -w @ojt/server
+    startCommand: npm run start -w @ojt/server
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: WEB_ORIGIN
+        sync: false
