@@ -1,4 +1,4 @@
-import { GameError, createRoom, joinRoom, startGame, submitVote, type Rng, type Room } from '../src';
+import { GameError, createRoom, joinRoom, maybeAutoReveal, startGame, submitVote, type Rng, type Room } from '../src';
 
 /** Deterministic rng: always picks the first option. */
 export const first: Rng = () => 0;
@@ -32,4 +32,13 @@ let reasonSeq = 0;
 export function vote(room: Room, voter: string, target: string, prediction = 0, reason = ''): void {
   reasonSeq += 1;
   submitVote(room, `id-${voter}`, { targetId: `id-${target}`, prediction, reason }, `reason-${reasonSeq}`, first);
+}
+
+/** A,B,C vote D (each with a reason), D votes A, then auto-reveal. */
+export function revealUnanimousD(room: Room): void {
+  vote(room, 'A', 'D', 0, '좀비 영화 마니아');
+  vote(room, 'B', 'D', 0, '창고가 있음');
+  vote(room, 'C', 'D', 0, '준비성 최고');
+  vote(room, 'D', 'A', 0, '그냥');
+  maybeAutoReveal(room, first);
 }

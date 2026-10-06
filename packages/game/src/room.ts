@@ -1,5 +1,6 @@
 import { MAIN_IDS, SPARE_IDS } from './questions';
 import { startRound } from './round';
+import { assignTitles } from './titles';
 import { GameError, MAX_PLAYERS, MIN_PLAYERS, NAME_MAX, type Player, type Room } from './types';
 
 export function createRoom(code: string, operatorToken: string, now: number): Room {
@@ -88,4 +89,13 @@ export function startGame(room: Room, now: number): void {
   if (!firstQuestion) throw new GameError('LAST_ROUND');
   room.startedAt = now;
   startRound(room, firstQuestion);
+}
+
+/** Normal end after the last result, or early end from voting/result. An unrevealed round is discarded. */
+export function finish(room: Room, now: number): void {
+  if (room.phase !== 'voting' && room.phase !== 'reveal') throw new GameError('WRONG_PHASE');
+  if (room.phase === 'voting') room.rounds.pop();
+  room.titles = assignTitles(room);
+  room.phase = 'final';
+  room.endedAt = now;
 }

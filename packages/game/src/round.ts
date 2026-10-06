@@ -1,6 +1,7 @@
 import { PREDICTION_COMMENTS, pickComment, resultPool } from './comments';
+import { getQuestion } from './questions';
 import {
-  GameError, REASON_MAX,
+  GameError, REASON_MAX, TOTAL_ROUNDS,
   type PredictionHighlight, type PredictionKind, type ResultType, type Rng, type Room, type Round,
 } from './types';
 
@@ -133,4 +134,70 @@ export function maybeAutoReveal(room: Room, rng: Rng): boolean {
   if (!allVoted(round) || totalVotes(round) === 0) return false;
   reveal(room, rng);
   return true;
+}
+
+function shuffle<T>(items: T[], rng: Rng): T[] {
+  const out = [...items];
+  for (let i = out.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1));
+    [out[i], out[j]] = [out[j] as T, out[i] as T];
+  }
+  return out;
+}
+
+function revealedRound(room: Room): Round & { result: NonNullable<Round['result']> } {
+  if (room.phase !== 'reveal') throw new GameError('WRONG_PHASE');
+  const round = currentRound(room);
+  if (!round.result) throw new GameError('WRONG_PHASE');
+  return round as Round & { result: NonNullable<Round['result']> };
+}
+
+export function showReasons(room: Room, rng: Rng): void {
+  const round = revealedRound(room);
+  const candidates = round.reasons.filter((r) => !r.hidden && round.result.topIds.includes(r.targetId));
+  round.shownReasonIds = shuffle(candidates, rng).slice(0, 2).map((r) => r.id);
+}
+
+export function hideReason(room: Room, reasonId: string): void {
+  const round = revealedRound(room);
+  const reason = round.reasons.find((r) => r.id === reasonId);
+  if (!reason) throw new GameError('REASON_NOT_FOUND');
+  reason.hidden = true;
+  if (round.shownReasonIds) round.shownReasonIds = round.shownReasonIds.filter((id) => id !== reasonId);
+}
+
+export function protest(room: Room, playerId: string): void {
+  const round = revealedRound(room);
+  if (!round.result.topIds.includes(playerId)) throw new GameError('NOT_TOP');
+  if (round.protestedIds.includes(playerId)) throw new GameError('ALREADY_PROTESTED');
+  round.protestedIds.push(playerId);
+}
+
+export function isLastRound(room: Room): boolean {
+  return room.rounds.length >= TOTAL_ROUNDS;
+}
+
+export function nextRound(room: Room): void {
+  revealedRound(room);
+  if (isLastRound(room)) throw new GameError('LAST_ROUND');
+  const questionId = room.mainQueue.shift();
+  if (!questionId) throw new GameError('LAST_ROUND');
+  startRound(room, questionId);
+}
+
+/** Spares that keep the game at one mistake-type question at most. The current round is about to be discarded, so it does not count. */
+export function usableSpareIds(room: Room): string[] {
+  const played = room.rounds.slice(0, -1).some((r) => getQuestion(r.questionId).mistake);
+  const ahead = room.mainQueue.some((id) => getQuestion(id).mistake);
+  const blocked = played || ahead;
+  return room.spareQueue.filter((id) => !(blocked && getQuestion(id).mistake));
+}
+
+export function skipQuestion(room: Room): void {
+  if (room.phase !== 'voting') throw new GameError('WRONG_PHASE');
+  const next = usableSpareIds(room)[0];
+  if (!next) throw new GameError('NO_SPARE');
+  room.spareQueue = room.spareQueue.filter((id) => id !== next);
+  const index = room.rounds.length - 1;
+  room.rounds[index] = newRound(room, next, index);
 }
