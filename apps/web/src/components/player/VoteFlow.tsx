@@ -11,8 +11,16 @@ import { call } from '@/lib/socket';
 
 type Step = 'pick' | 'reason' | 'predict';
 
-/** Keyed by round in the parent, so state resets per question. Its exit animation is the "throw": it flies up when the vote lands. */
-export function VoteFlow({ round }: { round: PlayerRoundInfo }) {
+interface Props {
+  round: PlayerRoundInfo;
+  me: { name: string; color: number };
+}
+
+/**
+ * Keyed by round in the parent, so state resets per question. Its exit animation is the "throw": it flies up when the vote lands.
+ * The voting surface is white so every candidate color stands out; the player's own color stays as the top band.
+ */
+export function VoteFlow({ round, me }: Props) {
   const [step, setStep] = useState<Step>('pick');
   const [targetId, setTargetId] = useState<string | null>(null);
   const [reason, setReason] = useState('');
@@ -37,12 +45,17 @@ export function VoteFlow({ round }: { round: PlayerRoundInfo }) {
 
   return (
     <motion.div
-      className="flex min-h-dvh flex-col gap-5 bg-inherit p-5 pb-44"
+      className="flex min-h-dvh flex-col gap-5 bg-white p-5 pb-44 text-night"
       initial={{ opacity: 0, y: 24 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ y: -900, opacity: 0, transition: { duration: 0.55, ease: 'easeIn' } }}
     >
-      <p className="text-sm font-bold">Q{round.number} / {round.total}</p>
+      <div className="-mx-5 -mt-5 flex items-center justify-between px-5 py-3 text-base font-bold" style={colorStyle(me.color)}>
+        <span>
+          Q{round.number} / {round.total}
+        </span>
+        <span>{me.name} · 내 색</span>
+      </div>
       <h1 className="font-display text-2xl leading-snug">{round.question}</h1>
 
       {step === 'pick' && (
@@ -54,9 +67,9 @@ export function VoteFlow({ round }: { round: PlayerRoundInfo }) {
                 <motion.button
                   type="button"
                   onClick={() => setTargetId(c.id)}
-                  animate={{ scale: selected ? 1.06 : 1, y: selected ? -8 : 0, rotate: selected ? -2 : 0, opacity: targetId && !selected ? 0.45 : 1 }}
+                  animate={{ scale: selected ? 1.06 : targetId ? 0.96 : 1, y: selected ? -8 : 0, rotate: selected ? -2 : 0, opacity: targetId && !selected ? 0.55 : 1 }}
                   transition={{ type: 'spring', stiffness: 500, damping: 25 }}
-                  className={`min-h-24 w-full rounded-3xl text-2xl font-bold shadow-[0_6px_0_rgba(0,0,0,0.18)] ${selected ? 'outline-4 outline-night' : ''}`}
+                  className={`min-h-24 w-full rounded-3xl border-[3px] border-night text-2xl font-bold shadow-[0_6px_0_var(--color-night)] ${selected ? 'outline-4 outline-offset-2 outline-night' : ''}`}
                   style={colorStyle(c.color)}
                   aria-pressed={selected}
                 >
@@ -96,7 +109,7 @@ export function VoteFlow({ round }: { round: PlayerRoundInfo }) {
                 onClick={() => setPrediction(n)}
                 animate={prediction === n ? { scale: [1, 1.25, 1], y: [0, -10, 0] } : { scale: 1, y: 0 }}
                 transition={{ duration: 0.35 }}
-                className={`min-h-16 rounded-2xl text-3xl font-bold ${prediction === n ? 'bg-night text-white' : 'bg-white text-night shadow-sm'}`}
+                className={`min-h-16 rounded-2xl border-[3px] border-night text-3xl font-bold ${prediction === n ? 'bg-night text-white' : 'bg-white text-night'}`}
                 aria-pressed={prediction === n}
               >
                 {n}
@@ -108,7 +121,7 @@ export function VoteFlow({ round }: { round: PlayerRoundInfo }) {
 
       {error && <p role="alert" className="rounded-xl bg-white p-3 font-bold text-red-700">{error}</p>}
 
-      <div className="fixed inset-x-0 bottom-0 flex flex-col gap-2 bg-inherit p-5">
+      <div className="fixed inset-x-0 -bottom-1 flex flex-col gap-2 bg-white p-5 pb-6">
         {step === 'pick' && (
           <Button variant="ink" disabled={!targetId} onClick={() => setStep('reason')}>다음</Button>
         )}

@@ -81,7 +81,7 @@ function PlayerStage({ view }: { view: PlayerView }) {
             </Notice>
           </motion.div>
         ) : (
-          <VoteFlow key={`${round.number}-${round.question}`} round={round} />
+          <VoteFlow key={`${round.number}-${round.question}`} round={round} me={{ name: me.name, color: me.color }} />
         )}
       </AnimatePresence>
     </div>
