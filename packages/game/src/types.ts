@@ -4,6 +4,8 @@ export const TOTAL_ROUNDS = 7;
 export const NAME_MAX = 6;
 export const REASON_MAX = 20;
 export const ROOM_TTL_MS = 2 * 60 * 60 * 1000;
+/** One color per possible player; the web app maps the index to a swatch. */
+export const PLAYER_COLOR_COUNT = 8;
 export const REACTION_KINDS = ['lol', 'agree', 'unfair'] as const;
 
 export type ReactionKind = (typeof REACTION_KINDS)[number];
@@ -22,6 +24,8 @@ export interface Player {
   connected: boolean;
   /** 0-based round index from which this player votes and can be voted for. -1 while pending. */
   joinedRound: number;
+  /** 0..PLAYER_COLOR_COUNT-1, the lowest index not used by a present player at join time. */
+  color: number;
 }
 
 /** A reason never records who wrote it. */

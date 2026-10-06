@@ -1,7 +1,7 @@
 import { MAIN_IDS, SPARE_IDS } from './questions';
 import { startRound } from './round';
 import { assignTitles } from './titles';
-import { GameError, MAX_PLAYERS, MIN_PLAYERS, NAME_MAX, type Player, type Room } from './types';
+import { GameError, MAX_PLAYERS, MIN_PLAYERS, NAME_MAX, PLAYER_COLOR_COUNT, type Player, type Room } from './types';
 
 export function createRoom(code: string, operatorToken: string, now: number): Room {
   return {
@@ -47,6 +47,8 @@ export function joinRoom(room: Room, rawName: string, id: string, token: string)
   assertNameFree(room, name);
   if (presentPlayers(room).length >= MAX_PLAYERS) throw new GameError('ROOM_FULL');
   const inLobby = room.phase === 'lobby';
+  const taken = new Set(presentPlayers(room).map((p) => p.color));
+  const color = Array.from({ length: PLAYER_COLOR_COUNT }, (_, i) => i).find((i) => !taken.has(i)) ?? 0;
   const player: Player = {
     id,
     name,
@@ -54,6 +56,7 @@ export function joinRoom(room: Room, rawName: string, id: string, token: string)
     status: inLobby ? 'active' : 'pending',
     connected: true,
     joinedRound: inLobby ? 0 : -1,
+    color,
   };
   room.players.push(player);
   return player;

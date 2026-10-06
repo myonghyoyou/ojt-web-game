@@ -6,7 +6,7 @@ import {
   type Phase, type PlayerStatus, type PredictionHighlight, type ResultType, type Room, type Round,
 } from './types';
 
-export interface PublicPlayer { id: string; name: string; connected: boolean; status: 'active' | 'pending' }
+export interface PublicPlayer { id: string; name: string; connected: boolean; status: 'active' | 'pending'; color: number }
 export interface RoundInfo { number: number; total: number; question: string; eligibleIds: string[]; votedIds: string[] }
 export interface ResultInfo {
   counts: { playerId: string; votes: number }[];
@@ -41,7 +41,7 @@ export interface PlayerRoundInfo {
   number: number;
   total: number;
   question: string;
-  candidates: { id: string; name: string }[];
+  candidates: { id: string; name: string; color: number }[];
   hasVoted: boolean;
   votedCount: number;
   eligibleCount: number;
@@ -51,7 +51,7 @@ export interface PlayerView {
   role: 'player';
   code: string;
   phase: Phase;
-  me: { id: string; name: string; status: PlayerStatus; eligible: boolean };
+  me: { id: string; name: string; status: PlayerStatus; eligible: boolean; color: number };
   round: PlayerRoundInfo | null;
   isTop: boolean;
   hasProtested: boolean;
@@ -61,6 +61,10 @@ export interface PlayerView {
 
 function nameOf(room: Room, id: string): string {
   return room.players.find((p) => p.id === id)?.name ?? '';
+}
+
+function colorOf(room: Room, id: string): number {
+  return room.players.find((p) => p.id === id)?.color ?? 0;
 }
 
 /** Voters still in the round. A removed player's vote stays counted, but not as voting progress. */
@@ -117,7 +121,7 @@ export function viewForStage(room: Room): StageView {
     phase: room.phase,
     players: room.players
       .filter((p) => p.status !== 'removed')
-      .map((p) => ({ id: p.id, name: p.name, connected: p.connected, status: p.status === 'pending' ? 'pending' : 'active' })),
+      .map((p) => ({ id: p.id, name: p.name, connected: p.connected, status: p.status === 'pending' ? 'pending' : 'active', color: p.color })),
     round: roundInfo(room),
     result: resultInfo(room),
     titles: titleInfo(room),
@@ -146,13 +150,13 @@ export function viewForPlayer(room: Room, playerId: string): PlayerView {
     role: 'player',
     code: room.code,
     phase: room.phase,
-    me: { id: me.id, name: me.name, status: me.status, eligible: !!round && round.eligibleIds.includes(playerId) },
+    me: { id: me.id, name: me.name, status: me.status, eligible: !!round && round.eligibleIds.includes(playerId), color: me.color },
     round: round
       ? {
           number: room.rounds.length,
           total: TOTAL_ROUNDS,
           question: getQuestion(round.questionId).text,
-          candidates: round.eligibleIds.filter((id) => id !== playerId).map((id) => ({ id, name: nameOf(room, id) })),
+          candidates: round.eligibleIds.filter((id) => id !== playerId).map((id) => ({ id, name: nameOf(room, id), color: colorOf(room, id) })),
           hasVoted: round.votedIds.includes(playerId),
           votedCount: votedEligible(round).length,
           eligibleCount: round.eligibleIds.length,
