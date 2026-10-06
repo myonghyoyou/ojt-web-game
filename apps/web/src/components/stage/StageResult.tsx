@@ -92,7 +92,7 @@ export function StageResult({ view }: { view: StageView }) {
               initial={{ y: -120, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-              className="rounded-full bg-brand-deep px-10 py-4 font-display text-4xl text-white"
+              className="rounded-full bg-brand-deep px-10 py-4 text-4xl font-bold text-white"
             >
               {protesters.join(', ')} 님, 억울함을 표명했습니다
             </motion.div>

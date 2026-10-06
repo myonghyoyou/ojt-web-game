@@ -5,7 +5,7 @@ import type { OperatorView } from '@ojt/game';
 import { Button } from '@/components/ui/Button';
 import { Notice } from '@/components/ui/Notice';
 import { messageFor } from '@/lib/messages';
-import { call } from '@/lib/socket';
+import { call, setHandshakeAuth } from '@/lib/socket';
 import { readJson, removeKey, writeJson } from '@/lib/storage';
 import { useRoomState } from '@/lib/useRoomState';
 import { PlayerAdmin } from './PlayerAdmin';
@@ -28,7 +28,12 @@ export function OperatorScreen({ code }: { code: string }) {
 
   const { view, closed, error, setError } = useRoomState<OperatorView>(
     `${storageKey}:${token ?? ''}`,
-    token ? () => call('op:auth', { code, token }) : null,
+    token
+      ? () => {
+          setHandshakeAuth({ code, role: 'operator', token });
+          return call('op:auth', { code, token });
+        }
+      : null,
   );
   const [busy, setBusy] = useState(false);
 

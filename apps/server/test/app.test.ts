@@ -138,6 +138,46 @@ describe('realtime server', () => {
     expect(g.stageState.get()?.phase).toBe('reveal');
   });
 
+  it('returns the same player when a join is retried after a lost ack', async () => {
+    const g = await setupGame(['A', 'B', 'C']);
+    const phone = await client();
+    const first = await call(phone, 'player:join', { code: g.code, name: 'D', joinKey: 'key-d' });
+    const retry = await call(phone, 'player:join', { code: g.code, name: 'D', joinKey: 'key-d' });
+    expect(retry).toEqual(first);
+    await settle();
+    expect(g.stageState.get()?.players.map((p) => p.name)).toEqual(['A', 'B', 'C', 'D']);
+  });
+
+  it('attaches from the handshake so a vote sent right after reconnecting is accepted', async () => {
+    const g = await setupGame();
+    await call(g.op, 'op:start');
+    const [a, b] = g.players;
+    a.socket.disconnect();
+    const again = connect(url, {
+      transports: ['websocket'],
+      forceNew: true,
+      reconnection: false,
+      auth: { code: g.code, role: 'player', playerId: a.id, token: a.token },
+    });
+    sockets.push(again);
+    const res = await new Promise<Ack>((resolve) =>
+      again.emit('player:vote', { targetId: b.id, prediction: 0 }, resolve),
+    );
+    expect(res).toEqual({ ok: true });
+  });
+
+  it('ignores a handshake with a wrong token', async () => {
+    const g = await setupGame();
+    const intruder = connect(url, {
+      transports: ['websocket'],
+      forceNew: true,
+      reconnection: false,
+      auth: { code: g.code, role: 'operator', token: 'nope' },
+    });
+    sockets.push(intruder);
+    expect(await new Promise<Ack>((resolve) => intruder.emit('op:start', {}, resolve))).toEqual({ ok: false, code: 'UNAUTHORIZED' });
+  });
+
   it('handles the last two votes arriving together', async () => {
     const g = await setupGame();
     await call(g.op, 'op:start');

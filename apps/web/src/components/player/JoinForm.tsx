@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { textLength } from '@/lib/format';
 import { messageFor } from '@/lib/messages';
 import { call } from '@/lib/socket';
+import { readJson, writeJson } from '@/lib/storage';
 
 export interface PlayerCreds { playerId: string; token: string }
 
@@ -19,7 +20,14 @@ export function JoinForm({ code, onJoined }: { code: string; onJoined: (creds: P
     event.preventDefault();
     setBusy(true);
     setError(null);
-    const res = await call<PlayerCreds>('player:join', { code, name });
+    // Same key on every retry: if an earlier attempt reached the server but its reply was lost,
+    // the server hands back that player instead of creating a second one.
+    const keyName = `joinKey:${code}`;
+    // randomUUID needs a secure context; plain-http LAN testing falls back to a random string.
+    const joinKey =
+      readJson<string>(keyName) ?? crypto.randomUUID?.() ?? `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
+    writeJson(keyName, joinKey);
+    const res = await call<PlayerCreds>('player:join', { code, name, joinKey });
     setBusy(false);
     if (!res.ok) {
       setError(messageFor(res.code));

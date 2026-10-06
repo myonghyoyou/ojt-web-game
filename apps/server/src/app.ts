@@ -42,6 +42,8 @@ export function createApp(options: AppOptions): App {
   const rooms = new RoomStore();
   const reactionLog = new Map<string, number[]>();
   const revealTimers = new Map<string, ReturnType<typeof setTimeout>>();
+  /** `${code}:${joinKey}` -> playerId, so a join retried after a lost ack returns the same player. */
+  const joinKeys = new Map<string, string>();
   const revealDelayMs = options.revealDelayMs ?? 900;
 
   const http = createServer((req, res) => {
@@ -81,6 +83,7 @@ export function createApp(options: AppOptions): App {
     clearTimeout(revealTimers.get(room.code));
     revealTimers.delete(room.code);
     for (const key of reactionLog.keys()) if (key.startsWith(`${room.code}:`)) reactionLog.delete(key);
+    for (const key of joinKeys.keys()) if (key.startsWith(`${room.code}:`)) joinKeys.delete(key);
   }
 
   /**
@@ -144,6 +147,25 @@ export function createApp(options: AppOptions): App {
       return { room: requireRoom(data.code), playerId: data.playerId };
     };
 
+    // Credentials in the handshake attach the socket before any buffered emit is processed,
+    // so a button pressed while reconnecting is not rejected as UNAUTHORIZED.
+    const handshake = (socket.handshake.auth ?? {}) as Payload;
+    const handshakeRoom = typeof handshake.code === 'string' ? rooms.get(handshake.code) : undefined;
+    if (handshakeRoom) {
+      if (handshake.role === 'operator' && handshake.token === handshakeRoom.operatorToken) {
+        attach(handshakeRoom.code, 'operator');
+      } else if (handshake.role === 'stage') {
+        attach(handshakeRoom.code, 'stage');
+      } else if (handshake.role === 'player') {
+        const player = handshakeRoom.players.find((p) => p.id === handshake.playerId && p.token === handshake.token);
+        if (player) {
+          player.connected = true;
+          attach(handshakeRoom.code, 'player', player.id);
+          broadcast(handshakeRoom);
+        }
+      }
+    }
+
     const operatorAction = (event: string, action: (room: Room, payload: Payload) => void) =>
       on(event, (payload) => {
         const room = asOperator();
@@ -172,9 +194,18 @@ export function createApp(options: AppOptions): App {
       socket.emit('state', viewForStage(room));
     });
 
-    on('player:join', ({ code, name }) => {
+    on('player:join', ({ code, name, joinKey }) => {
       const room = requireRoom(code);
+      const keyId = typeof joinKey === 'string' && joinKey ? `${room.code}:${joinKey}` : null;
+      const known = keyId ? room.players.find((p) => p.id === joinKeys.get(keyId) && p.status !== 'removed') : undefined;
+      if (known) {
+        known.connected = true;
+        attach(room.code, 'player', known.id);
+        broadcast(room);
+        return { playerId: known.id, token: known.token };
+      }
       const player = joinRoom(room, String(name ?? ''), randomUUID(), randomUUID());
+      if (keyId) joinKeys.set(keyId, player.id);
       attach(room.code, 'player', player.id);
       broadcast(room);
       return { playerId: player.id, token: player.token };

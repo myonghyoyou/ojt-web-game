@@ -5,7 +5,7 @@ import { AnimatePresence, motion } from 'motion/react';
 import type { PlayerView } from '@ojt/game';
 import { Notice } from '@/components/ui/Notice';
 import { messageFor } from '@/lib/messages';
-import { call } from '@/lib/socket';
+import { call, setHandshakeAuth } from '@/lib/socket';
 import { readJson, removeKey, writeJson } from '@/lib/storage';
 import { useRoomState } from '@/lib/useRoomState';
 import { JoinForm, type PlayerCreds } from './JoinForm';
@@ -19,7 +19,12 @@ export function PlayerScreen({ code }: { code: string }) {
 
   const { view, closed, error } = useRoomState<PlayerView>(
     `${storageKey}:${creds?.playerId ?? 'none'}`,
-    creds ? () => call('player:resume', { code, ...creds }) : null,
+    creds
+      ? () => {
+          setHandshakeAuth({ code, role: 'player', ...creds });
+          return call('player:resume', { code, ...creds });
+        }
+      : null,
   );
 
   useEffect(() => {
@@ -51,7 +56,13 @@ function PlayerStage({ view }: { view: PlayerView }) {
   const { me, round } = view;
   if (me.status === 'removed') return <Notice>운영자가 참가 목록에서 제외했어요.</Notice>;
   if (me.status === 'pending') return <Notice title="입장 대기">운영자가 확인하면 다음 문제부터 참여해요.</Notice>;
-  if (view.phase === 'lobby') return <Notice title={`${me.name} 님`}>내 이름이 앞 화면에 떴어요. 지금 {view.playerCount}명이 모였어요.</Notice>;
+  if (view.phase === 'lobby') {
+    return (
+      <Notice title="입장 완료">
+        <span className="font-bold text-ink">{me.name}</span> 님 이름이 앞 화면에 떴어요. 지금 {view.playerCount}명이 모였어요.
+      </Notice>
+    );
+  }
   if (view.phase === 'final') return <Notice title="앞 화면을 보세요">오늘 우리가 본 서로의 이미지가 공개됩니다.</Notice>;
   if (view.phase === 'reveal') return <ReactionPad isTop={view.isTop} hasProtested={view.hasProtested} />;
   if (!round || !me.eligible) return <Notice>다음 문제부터 참여해요.</Notice>;
