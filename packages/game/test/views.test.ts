@@ -34,6 +34,15 @@ describe('viewForPlayer', () => {
     expect(viewForPlayer(room, 'id-A').isTop).toBe(false);
   });
 
+  it('does not count a removed player\'s vote toward voting progress', () => {
+    const room = started();
+    vote(room, 'D', 'A');
+    vote(room, 'B', 'A');
+    removePlayer(room, 'id-D');
+    expect(viewForPlayer(room, 'id-A').round).toMatchObject({ votedCount: 1, eligibleCount: 3 });
+    expect(viewForStage(room).round).toMatchObject({ votedIds: ['id-B'], eligibleIds: ['id-A', 'id-B', 'id-C'] });
+  });
+
   it('marks pending late joiners as not eligible', () => {
     const room = started();
     joinRoom(room, 'E', 'id-E', 'tk-E');

@@ -63,6 +63,11 @@ function nameOf(room: Room, id: string): string {
   return room.players.find((p) => p.id === id)?.name ?? '';
 }
 
+/** Voters still in the round. A removed player's vote stays counted, but not as voting progress. */
+function votedEligible(round: Round): string[] {
+  return round.votedIds.filter((id) => round.eligibleIds.includes(id));
+}
+
 function liveRound(room: Room): Round | null {
   const round = room.rounds.at(-1);
   return round && (room.phase === 'voting' || room.phase === 'reveal') ? round : null;
@@ -76,7 +81,7 @@ function roundInfo(room: Room): RoundInfo | null {
     total: TOTAL_ROUNDS,
     question: getQuestion(round.questionId).text,
     eligibleIds: [...round.eligibleIds],
-    votedIds: [...round.votedIds],
+    votedIds: votedEligible(round),
   };
 }
 
@@ -149,7 +154,7 @@ export function viewForPlayer(room: Room, playerId: string): PlayerView {
           question: getQuestion(round.questionId).text,
           candidates: round.eligibleIds.filter((id) => id !== playerId).map((id) => ({ id, name: nameOf(room, id) })),
           hasVoted: round.votedIds.includes(playerId),
-          votedCount: round.votedIds.length,
+          votedCount: votedEligible(round).length,
           eligibleCount: round.eligibleIds.length,
           maxPrediction: Math.max(0, round.eligibleIds.length - 1),
         }

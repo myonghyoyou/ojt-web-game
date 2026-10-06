@@ -74,9 +74,10 @@ export function OperatorScreen({ code }: { code: string }) {
       </header>
 
       {view.phase === 'lobby' && (
-        <p className="rounded-2xl bg-white p-4 text-muted">
-          노트북에서 이 사이트 첫 화면을 열고 방 코드 <b className="text-ink">{view.code}</b>를 입력하면 무대 화면이 열립니다.
-        </p>
+        <section className="rounded-2xl bg-white p-4">
+          <p className="text-muted">노트북에서 이 사이트 첫 화면을 열고, 방 코드 칸에 아래 숫자를 넣으면 무대 화면이 열립니다.</p>
+          <p className="mt-2 text-4xl font-bold tracking-widest text-ink">{view.code}</p>
+        </section>
       )}
 
       {error && <p role="alert" className="rounded-2xl bg-red-50 p-3 text-red-700">{messageFor(error)}</p>}
