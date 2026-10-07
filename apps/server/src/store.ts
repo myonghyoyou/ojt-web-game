@@ -25,7 +25,8 @@ export class RoomStore {
     throw new Error('no free room code');
   }
 
-  expired(now: number, ttlMs: number): Room[] {
-    return [...this.rooms.values()].filter((room) => now - room.createdAt > ttlMs);
+  /** Started rooms live `ttlMs`; rooms nobody started live only `lobbyTtlMs`. */
+  expired(now: number, ttlMs: number, lobbyTtlMs: number): Room[] {
+    return [...this.rooms.values()].filter((room) => now - room.createdAt > (room.startedAt === null ? lobbyTtlMs : ttlMs));
   }
 }

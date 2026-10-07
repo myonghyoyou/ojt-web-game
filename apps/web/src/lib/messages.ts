@@ -14,6 +14,7 @@ const MESSAGES: Record<string, string> = {
   NO_VOTES: '아직 투표가 없어요.',
   NO_SPARE: '남은 예비 문제가 없어요.',
   LAST_ROUND: '마지막 문제예요.',
+  RATE_LIMITED: '잠깐 사이에 너무 많이 눌렀어요. 1분 뒤에 다시 시도해 주세요.',
   TIMEOUT: '서버 응답이 늦어요. 잠시 후 다시 시도해 주세요.',
 };
 

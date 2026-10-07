@@ -2,7 +2,7 @@ import { createServer, type Server as HttpServer } from 'node:http';
 import { randomUUID } from 'node:crypto';
 import { Server, type Socket } from 'socket.io';
 import {
-  GameError, REACTION_KINDS, ROOM_TTL_MS,
+  GameError, LOBBY_TTL_MS, REACTION_KINDS, ROOM_TTL_MS,
   admitPlayer, allVoted, createRoom, findPlayer, finish, hideReason, joinRoom, maybeAutoReveal, nextRound, protest,
   removePlayer, renamePlayer, reveal, showReasons, skipQuestion, startGame, submitVote,
   viewForOperator, viewForPlayer, viewForStage,
@@ -35,12 +35,15 @@ export interface App {
 
 const REACTION_WINDOW_MS = 1000;
 const REACTIONS_PER_WINDOW = 2;
+const CREATE_WINDOW_MS = 60_000;
+const CREATES_PER_WINDOW = 3;
 
 export function createApp(options: AppOptions): App {
   const now = options.now ?? Date.now;
   const rng = options.rng ?? Math.random;
   const rooms = new RoomStore();
   const reactionLog = new Map<string, number[]>();
+  const createLog = new Map<string, number[]>();
   const revealTimers = new Map<string, ReturnType<typeof setTimeout>>();
   /** `${code}:${joinKey}` -> playerId, so a join retried after a lost ack returns the same player. */
   const joinKeys = new Map<string, string>();
@@ -82,6 +85,16 @@ export function createApp(options: AppOptions): App {
     rooms.delete(room.code);
     clearTimeout(revealTimers.get(room.code));
     revealTimers.delete(room.code);
+    // Forget which room these sockets belonged to: the 4-digit number can be issued again to a new room.
+    for (const s of io.sockets.sockets.values()) {
+      const d = s.data as SocketData;
+      // Clear in place: each connection handler holds a reference to this same object.
+      if (d.code === room.code) {
+        d.code = undefined;
+        d.role = undefined;
+        d.playerId = undefined;
+      }
+    }
     for (const key of reactionLog.keys()) if (key.startsWith(`${room.code}:`)) reactionLog.delete(key);
     for (const key of joinKeys.keys()) if (key.startsWith(`${room.code}:`)) joinKeys.delete(key);
   }
@@ -102,7 +115,7 @@ export function createApp(options: AppOptions): App {
   }
 
   function sweep(): void {
-    for (const room of rooms.expired(now(), ROOM_TTL_MS)) closeRoom(room);
+    for (const room of rooms.expired(now(), ROOM_TTL_MS, LOBBY_TTL_MS)) closeRoom(room);
   }
   const sweepTimer = setInterval(sweep, options.sweepMs ?? 60_000);
   sweepTimer.unref();
@@ -174,6 +187,14 @@ export function createApp(options: AppOptions): App {
       });
 
     on('room:create', () => {
+      // Behind Render's proxy the client address arrives in x-forwarded-for.
+      const forwarded = socket.handshake.headers['x-forwarded-for'];
+      const ip = (Array.isArray(forwarded) ? forwarded[0] : forwarded)?.split(',')[0]?.trim() || socket.handshake.address;
+      const t = now();
+      const recent = (createLog.get(ip) ?? []).filter((at) => t - at < CREATE_WINDOW_MS);
+      if (recent.length >= CREATES_PER_WINDOW) throw new GameError('RATE_LIMITED');
+      recent.push(t);
+      createLog.set(ip, recent);
       const room = createRoom(rooms.newCode(), randomUUID(), now());
       rooms.add(room);
       attach(room.code, 'operator');

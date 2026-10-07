@@ -4,6 +4,8 @@ export const TOTAL_ROUNDS = 7;
 export const NAME_MAX = 6;
 export const REASON_MAX = 20;
 export const ROOM_TTL_MS = 2 * 60 * 60 * 1000;
+/** A room that never started is removed sooner. */
+export const LOBBY_TTL_MS = 30 * 60 * 1000;
 /** One color per possible player; the web app maps the index to a swatch. */
 export const PLAYER_COLOR_COUNT = 8;
 export const REACTION_KINDS = ['lol', 'agree', 'unfair'] as const;

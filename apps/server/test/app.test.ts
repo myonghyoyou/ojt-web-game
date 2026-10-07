@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import type { AddressInfo } from 'node:net';
 import { io as connect, type Socket } from 'socket.io-client';
-import { ROOM_TTL_MS, type OperatorView, type PlayerView, type StageView } from '@ojt/game';
+import { LOBBY_TTL_MS, ROOM_TTL_MS, createRoom, type OperatorView, type PlayerView, type StageView } from '@ojt/game';
 import { createApp, type App } from '../src/app';
 
 type Ack = { ok: boolean; code?: string; [key: string]: unknown };
@@ -233,6 +233,34 @@ describe('realtime server', () => {
     expect(closed).toBe(4);
     const late = await client();
     expect(await call(late, 'stage:watch', { code: g.code })).toEqual({ ok: false, code: 'ROOM_NOT_FOUND' });
+  });
+
+  it('limits room creation to 3 per minute from the same address', async () => {
+    const s = await client();
+    for (let i = 0; i < 3; i++) expect((await call(s, 'room:create')).ok).toBe(true);
+    const other = await client();
+    expect(await call(other, 'room:create')).toEqual({ ok: false, code: 'RATE_LIMITED' });
+    clock = 61_000;
+    expect((await call(other, 'room:create')).ok).toBe(true);
+  });
+
+  it('removes a room nobody started after 30 minutes, but keeps a started one', async () => {
+    const idle = await setupGame(['A', 'B', 'C']);
+    const live = await setupGame(['D', 'E', 'F']);
+    await call(live.op, 'op:start');
+    clock = LOBBY_TTL_MS + 1;
+    app.sweep();
+    expect(app.rooms.get(idle.code)).toBeUndefined();
+    expect(app.rooms.get(live.code)).toBeDefined();
+  });
+
+  it('drops old sockets\' rights when a room closes, so a reused room number is safe', async () => {
+    const g = await setupGame(['A', 'B', 'C']);
+    await call(g.op, 'op:end');
+    // The same 4-digit number is issued again to a new room.
+    app.rooms.add(createRoom(g.code, 'new-token', clock));
+    expect(await call(g.op, 'op:start')).toEqual({ ok: false, code: 'UNAUTHORIZED' });
+    expect(await call(g.players[0].socket, 'player:react', { kind: 'lol' })).toEqual({ ok: false, code: 'UNAUTHORIZED' });
   });
 
   it('expires rooms two hours after creation', async () => {
