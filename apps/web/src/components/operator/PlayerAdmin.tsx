@@ -15,7 +15,7 @@ export function PlayerAdmin({ players, disabled, onRename, onRemove }: Props) {
     <section className="rounded-2xl bg-white p-4">
       <h2 className="mb-2 font-bold">참가자 {players.length}명</h2>
       {players.length === 0 && (
-        <p className="text-muted">아직 아무도 입장하지 않았어요. 무대 화면의 QR을 찍으면 여기에 나타나요.</p>
+        <p className="text-muted">아직 아무도 입장하지 않았어요. 프로젝터 화면의 QR을 찍거나 방 번호를 넣으면 여기에 나타나요.</p>
       )}
       <ul className="divide-y divide-gray-100">
         {players.map((p) => (

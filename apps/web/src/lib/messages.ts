@@ -2,7 +2,7 @@ const MESSAGES: Record<string, string> = {
   NAME_INVALID: '이름은 1~6자로 입력해 주세요.',
   NAME_TAKEN: '이미 있는 이름이에요.',
   ROOM_FULL: '방이 가득 찼어요.',
-  ROOM_NOT_FOUND: '방을 찾을 수 없어요. QR을 다시 찍어 주세요.',
+  ROOM_NOT_FOUND: '그 번호의 방이 없어요. 앞 화면의 방 번호를 다시 확인해 주세요.',
   UNAUTHORIZED: '권한이 없어요.',
   WRONG_PHASE: '지금은 할 수 없는 동작이에요.',
   NOT_ENOUGH_PLAYERS: '3명 이상 모여야 시작할 수 있어요.',

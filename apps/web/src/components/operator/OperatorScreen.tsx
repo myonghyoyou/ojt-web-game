@@ -80,7 +80,7 @@ export function OperatorScreen({ code }: { code: string }) {
 
       {view.phase === 'lobby' && (
         <section className="rounded-2xl bg-white p-4">
-          <p className="text-muted">노트북에서 이 사이트 첫 화면을 열고, 방 코드 칸에 아래 숫자를 넣으면 무대 화면이 열립니다.</p>
+          <p className="text-muted">노트북에서 이 사이트 첫 화면을 열고, "프로젝터 화면 열기"에 아래 방 번호를 넣으세요.</p>
           <p className="mt-2 text-4xl font-bold tracking-widest text-ink">{view.code}</p>
         </section>
       )}
@@ -166,7 +166,7 @@ export function OperatorScreen({ code }: { code: string }) {
         <details className="rounded-2xl bg-white p-4">
           <summary className="min-h-12 cursor-pointer content-center font-bold">이 폰을 쓸 수 없게 되면</summary>
           <p className="mt-2 text-muted">
-            운영자 링크를 다른 기기에서 열면 그 기기가 운영자가 돼요. 무대 화면이나 단체 채팅방에는 올리지 마세요.
+            운영자 링크를 다른 기기에서 열면 그 기기가 운영자가 돼요. 프로젝터 화면이나 단체 채팅방에는 올리지 마세요.
           </p>
           <Button className="mt-3" variant="secondary" onClick={copyRecoveryLink}>
             {copied ? '운영자 링크를 복사했어요' : '운영자 링크 복사'}

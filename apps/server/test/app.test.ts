@@ -87,6 +87,15 @@ describe('realtime server', () => {
     expect(d.state.get()?.isTop).toBe(true);
   });
 
+  it('tells a phone whether a room number exists before it asks for a name', async () => {
+    const g = await setupGame(['A', 'B', 'C']);
+    const phone = await client();
+    expect(await call(phone, 'room:exists', { code: g.code })).toEqual({ ok: true });
+    expect(await call(phone, 'room:exists', { code: '0000' === g.code ? '0001' : '0000' })).toEqual({ ok: false, code: 'ROOM_NOT_FOUND' });
+    // Checking must not attach the socket to any role.
+    expect(await call(phone, 'player:vote', { targetId: g.players[0].id, prediction: 0 })).toEqual({ ok: false, code: 'UNAUTHORIZED' });
+  });
+
   it('rejects operator actions from non-operators', async () => {
     const g = await setupGame();
     expect(await call(g.players[0].socket, 'op:start')).toEqual({ ok: false, code: 'UNAUTHORIZED' });

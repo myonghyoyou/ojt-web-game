@@ -188,6 +188,11 @@ export function createApp(options: AppOptions): App {
       broadcast(room);
     });
 
+    // Lets the join page reject a mistyped room number before asking for a name. Attaches nothing.
+    on('room:exists', ({ code }) => {
+      requireRoom(code);
+    });
+
     on('stage:watch', ({ code }) => {
       const room = requireRoom(code);
       attach(room.code, 'stage');
