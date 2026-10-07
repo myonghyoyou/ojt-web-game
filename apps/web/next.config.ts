@@ -3,6 +3,12 @@ import type { NextConfig } from 'next';
 
 const root = path.resolve(process.cwd(), '../..');
 
+// NEXT_PUBLIC_* values are baked in at build time. On Vercel, a missing socket URL would ship a site that
+// silently tries localhost:4000, so fail the build instead.
+if (process.env.VERCEL && !process.env.NEXT_PUBLIC_SOCKET_URL) {
+  throw new Error('NEXT_PUBLIC_SOCKET_URL is not set. Add it in Vercel > Settings > Environment Variables, then redeploy.');
+}
+
 const nextConfig: NextConfig = {
   transpilePackages: ['@ojt/game'],
   outputFileTracingRoot: root,
